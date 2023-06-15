@@ -10,6 +10,7 @@ from app.extensions import db
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.config['SECRET_KEY'] = 'SLAPTAS_KODAS'
 
     # Initialize Flask extensions here
     db.init_app(app)
