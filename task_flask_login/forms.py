@@ -27,3 +27,11 @@ class PrisijungimoForma(FlaskForm):
     slaptazodis = PasswordField('Slaptažodis', [DataRequired()])
     prisiminti = BooleanField("Prisiminti mane")
     submit = SubmitField('Prisijungti')
+    
+    
+class KeitimoForma(FlaskForm):
+    el_pastas = StringField('El. paštas', [DataRequired()])
+    slaptazodis = PasswordField('Slaptažodis', [DataRequired()])
+    naujas_slaptazodis = PasswordField(' nauajas slaptažodis', [DataRequired()])
+    pakartoti_slaptazodi = PasswordField('pakartoti slaptazodi', [EqualTo('slaptazodis', "Slaptažodis turi sutapti.")])
+    submit = SubmitField('Keisti')

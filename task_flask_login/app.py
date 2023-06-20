@@ -14,7 +14,7 @@ db = SQLAlchemy(app)
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'prisijungti'
+login_manager.login_view = 'Prisijungimo langas'
 login_manager.login_message_category = 'info'
 
 class Vartotojas(db.Model, UserMixin):
@@ -46,7 +46,7 @@ def registruotis():
 
 @app.route("/prisijungti", methods=['GET', 'POST'])
 def prisijungti():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated: # naudojama visur svarbu
         return redirect(url_for('index'))
     form = forms.PrisijungimoForma()
     if form.validate_on_submit():
@@ -59,16 +59,33 @@ def prisijungti():
             flash('Prisijungti nepavyko. Patikrinkite el. paštą ir slaptažodį', 'danger')
     return render_template('prisijungti.html', title='Prisijungti', form=form)
 
+
+@app.route("/paskyra", methods=["GET", "POST"])
+@login_required
+def account():
+    form = forms.KeitimoForma()
+    if form.validate_on_submit():
+        user = Vartotojas.query.filter_by(el_pastas=current_user.el_pastas).first()
+        if user and bcrypt.check_password_hash(user.slaptazodis, form.slaptazodis.data):
+            koduotas_slaptazodis = bcrypt.generate_password_hash(
+                form.naujas_slaptazodis.data
+            ).decode("utf-8")
+            user.slaptazodis = koduotas_slaptazodis
+            db.session.commit()
+            flash("Sėkmingai pakeitete slaptažodį!", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Pakeisti nepavyko. Patikrinkite slaptažodį", "danger")
+    return render_template("paskyra.html", title="Paskyra", form=form)
+
+
+
+
 @app.route("/atsijungti")
 def atsijungti():
     logout_user()
     return redirect(url_for('index'))
 
-
-@app.route("/paskyra")
-@login_required
-def account():
-    return render_template('paskyra.html', title='Paskyra')
 
 @app.route("/irasai")
 @login_required
@@ -76,9 +93,12 @@ def irasai():
     return render_template('irasai.html', title='Įrašai')
 
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8000, debug=True)
